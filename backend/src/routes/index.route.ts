@@ -8,6 +8,7 @@ import { successResponse } from "@/utils/success-response.util.js";
 import config from "@/config/env.config.js";
 import mongoose from "mongoose";
 import APIError from "@/lib/api-error.lib.js";
+import authRouter from "./auth.route.js";
 
 const router: Router = Router();
 
@@ -44,6 +45,8 @@ router
       next(error);
     }
   });
+
+router.use("/api/v1/auth", authRouter);
 
 router.use((_req: Request, _res: Response, next: NextFunction) => {
   next(

@@ -11,6 +11,10 @@ const envConfig = {
   APP_NAME: process.env.APP_NAME,
   APP_VERSION: process.env.APP_VERSION,
   CORS_ORIGIN: process.env.CORS_ORIGIN,
+  EMAIL_HOST: process.env.EMAIL_HOST,
+  EMAIL_USER: process.env.EMAIL_USER,
+  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
+  FRONTEND_URL: process.env.FRONTEND_URL,
 };
 
 const config = validate(envSchema, envConfig);
