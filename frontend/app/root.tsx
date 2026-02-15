@@ -8,6 +8,7 @@ import {
 } from "react-router";
 import { Toaster } from "@/components/ui/sonner";
 import type { Route } from "./+types/root";
+import { ReactQueryProvider } from "./provider/react-query-provider";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -34,7 +35,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <Toaster />
+        <Toaster position="top-center" richColors />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -43,7 +44,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <ReactQueryProvider>
+      <Outlet />
+    </ReactQueryProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
