@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
+import { useSignupMutation } from "@/hooks/use-auth";
 
 const SignUp = () => {
   const form = useForm<SignUpFormData>({
@@ -38,20 +39,19 @@ const SignUp = () => {
     },
   });
 
+  const { mutate, isPending } = useSignupMutation();
+
   function onSubmit(data: SignUpFormData) {
-    toast("You submitted the following values:", {
-      description: (
-        <pre className="bg-code text-code-foreground mt-2 w-[320px] overflow-x-auto rounded-md p-4">
-          <code>{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-      position: "bottom-right",
-      classNames: {
-        content: "flex flex-col gap-2",
+    mutate(data, {
+      onSuccess: () => {
+        toast.success("Account created successfully! Please sign in.");
       },
-      style: {
-        "--border-radius": "calc(var(--radius)  + 4px)",
-      } as React.CSSProperties,
+      onError: (error: any) => {
+        const message =
+          error?.response?.data?.message ||
+          "An error occurred. Please try again.";
+        toast.error(message);
+      },
     });
   }
   return (
@@ -86,6 +86,7 @@ const SignUp = () => {
                       aria-invalid={fieldState.invalid}
                       placeholder="John Doe"
                       autoComplete="off"
+                      type="text"
                       className="py-5"
                     />
                     {fieldState.invalid && (
@@ -110,6 +111,7 @@ const SignUp = () => {
                       placeholder="email@example.com"
                       autoComplete="off"
                       className="py-5"
+                      type="email"
                     />
                     {fieldState.invalid && (
                       <FieldError
@@ -135,6 +137,7 @@ const SignUp = () => {
                       placeholder="••••••••"
                       autoComplete="off"
                       className="py-5"
+                      type="password"
                     />
                     {fieldState.invalid && (
                       <FieldError
@@ -159,6 +162,7 @@ const SignUp = () => {
                       aria-invalid={fieldState.invalid}
                       placeholder="••••••••"
                       autoComplete="off"
+                      type="password"
                       className="py-5"
                     />
                     {fieldState.invalid && (
@@ -171,8 +175,8 @@ const SignUp = () => {
                 )}
               />
             </FieldGroup>
-            <Button className="w-full py-5" type="submit">
-              Submit
+            <Button className="w-full py-5" type="submit" disabled={isPending}>
+              {isPending ? "Creating Account..." : "Sign Up"}
             </Button>
           </form>
         </CardContent>
