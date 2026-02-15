@@ -11,5 +11,10 @@ export const registerController = async (req: Request, res: Response) => {
     userId: user.id,
   });
 
-  successResponse(res, 201, "User registered successfully", { user });
+  successResponse(
+    res,
+    201,
+    "User registered successfully, Verification email sent please check and verify your account",
+    { user },
+  );
 };
