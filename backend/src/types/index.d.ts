@@ -12,6 +12,13 @@ declare global {
   type Errorresponse = string | ErrorType;
 
   type Roles = "admin" | "student" | "teacher";
+
+  interface JWTPayload {
+    userId: string;
+    purpose: "email-verification" | "password-reset" | "access" | "refresh";
+    iat?: number;
+    exp?: number;
+  }
 }
 
 export {};
