@@ -1,8 +1,11 @@
 import config from "@/config/env.config.js";
+import { Types } from "mongoose";
 
 export const expiresAt = () => {
   return new Date(Date.now() + 60 * 60 * 1000);
 };
+
+export const stringToObjectId = (id: string) => new Types.ObjectId(id);
 
 export function verificationEmailTemplate(name = "User", verifyLink = "") {
   return `<!doctype html>
