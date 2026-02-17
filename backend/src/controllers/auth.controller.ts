@@ -5,6 +5,8 @@ import {
   registerService,
   loginService,
   verifyEmailService,
+  resetPasswordService,
+  verifyResetPasswordTokenAndResetPasswordService,
 } from "@/services/auth.service.js";
 
 export const registerController = async (req: Request, res: Response) => {
@@ -46,4 +48,32 @@ export const verifyEmailController = async (req: Request, res: Response) => {
     200,
     "Email verified successfully, you can now login to your account",
   );
+};
+
+export const resetPasswordController = async (req: Request, res: Response) => {
+  await resetPasswordService(req.body);
+
+  logger.info("Password reset email sent successfully", {
+    label: "Reset_Password_Controller",
+    email: req.body.email,
+  });
+
+  successResponse(
+    res,
+    200,
+    "Password reset email sent successfully, please check your inbox",
+  );
+};
+
+export const verifyResetPasswordTokenAndResetPasswordController = async (
+  req: Request,
+  res: Response,
+) => {
+  await verifyResetPasswordTokenAndResetPasswordService(req.body);
+
+  logger.info("Password reset successfully", {
+    label: "Verify_Reset_Password_Token_And_Reset_Password_Controller",
+  });
+
+  successResponse(res, 200, "Password reset successfully, you can now login");
 };
