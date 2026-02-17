@@ -15,6 +15,21 @@ export const verifyEmailSchema = z.object({
   token: z.string().min(1, "Token is required"),
 });
 
+export const resetPasswordSchema = z.object({
+  email: z.email("Invalid email address"),
+});
+
+export const verifyResetPasswordTokenAndResetPasswordSchema = z.object({
+  token: z.string().min(1, "Token is required"),
+  newPassword: z
+    .string()
+    .min(6, "New password must be at least 6 characters long"),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type VerifyResetPasswordTokenAndResetPasswordInput = z.infer<
+  typeof verifyResetPasswordTokenAndResetPasswordSchema
+>;
