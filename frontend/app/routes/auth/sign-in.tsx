@@ -19,9 +19,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { useLoginMutation } from "@/hooks/use-auth";
+import { useAuth } from "@/provider/auth-context";
 
 const SignIn = () => {
+  const navigate = useNavigate();
   const form = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -30,20 +33,23 @@ const SignIn = () => {
     },
   });
 
+  const { mutate, isPending } = useLoginMutation();
+  const { login } = useAuth();
+
   function onSubmit(data: SignInFormData) {
-    toast("You submitted the following values:", {
-      description: (
-        <pre className="bg-code text-code-foreground mt-2 w-[320px] overflow-x-auto rounded-md p-4">
-          <code>{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-      position: "bottom-right",
-      classNames: {
-        content: "flex flex-col gap-2",
+    mutate(data, {
+      onSuccess: (response) => {
+        login(response.data);
+        toast.success("Logged in successfully!");
+        form.reset();
+        navigate("/dashboard");
       },
-      style: {
-        "--border-radius": "calc(var(--radius)  + 4px)",
-      } as React.CSSProperties,
+      onError: (error: any) => {
+        const message =
+          error?.response?.data?.message ||
+          "An error occurred. Please try again.";
+        toast.error(message);
+      },
     });
   }
   return (
@@ -116,8 +122,8 @@ const SignIn = () => {
                 <Link to="/forgot-password">Forgot Password?</Link>
               </Button>
             </div>
-            <Button className="w-full py-5" type="submit">
-              Submit
+            <Button className="w-full py-5" type="submit" disabled={isPending}>
+              {isPending ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         </CardContent>

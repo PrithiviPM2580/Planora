@@ -25,10 +25,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useSignupMutation } from "@/hooks/use-auth";
 
 const SignUp = () => {
+  const navigate = useNavigate();
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -45,6 +46,8 @@ const SignUp = () => {
     mutate(data, {
       onSuccess: () => {
         toast.success("Account created successfully! Please sign in.");
+        form.reset();
+        navigate("/sign-in");
       },
       onError: (error: any) => {
         const message =

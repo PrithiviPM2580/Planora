@@ -26,4 +26,14 @@ function SpinnerCustom({ className, ...props }: React.ComponentProps<"svg">) {
   );
 }
 
-export { Spinner, SpinnerCustom };
+function SpinnerOnly({ className, ...props }: React.ComponentProps<"svg">) {
+  return (
+    <LoaderIcon
+      role="status"
+      aria-label="Loading"
+      className={cn("size-6 animate-spin", className)}
+      {...props}
+    />
+  );
+}
+export { Spinner, SpinnerCustom, SpinnerOnly };
