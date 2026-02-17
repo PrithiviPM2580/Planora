@@ -1,7 +1,9 @@
 import type {
   LoginInput,
   RegisterInput,
+  ResetPasswordInput,
   VerifyEmailInput,
+  VerifyResetPasswordTokenAndResetPasswordInput,
 } from "@/validator/auth.validator.js";
 import {
   findUserByEmail,
@@ -223,6 +225,139 @@ export const verifyEmailService = async (data: VerifyEmailInput) => {
   }
 
   user.isEmailVerified = true;
+  await user.save();
+
+  await deleteVerificationById(verification._id);
+};
+
+export const resetPasswordService = async (data: ResetPasswordInput) => {
+  const { email } = data;
+
+  const user = await findUserByEmail(email);
+
+  if (!user) {
+    logger.error("User not found for password reset", {
+      label: "Reset_Password_Service",
+      email,
+    });
+    throw new APIError(400, "User not found");
+  }
+
+  if (!user.isEmailVerified) {
+    logger.error("Email not verified for password reset", {
+      label: "Reset_Password_Service",
+      email,
+    });
+    throw new APIError(400, "Email not verified");
+  }
+
+  const existingVerification = await findVerificationByUserId(user._id);
+
+  if (existingVerification && existingVerification?.expiresAt < new Date()) {
+    logger.error(
+      "Existing verification token expired for password reset, generating new token",
+      {
+        label: "Reset_Password_Service",
+        email,
+      },
+    );
+  }
+
+  if (existingVerification && existingVerification?.expiresAt < new Date()) {
+    await deleteVerificationById(existingVerification._id);
+  }
+
+  const resetPasswordToken = jwtSign.sign(
+    {
+      userId: user._id,
+      purpose: "reset-password",
+    },
+    "15m",
+  );
+
+  await createVerification({
+    userId: user._id,
+    token: resetPasswordToken,
+    expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+  });
+
+  const emailResult = await sendVerificationEmail(
+    user.email,
+    "Reset Your Password",
+    verificationEmailTemplate(user.fullName, resetPasswordToken),
+  );
+
+  if (!emailResult) {
+    logger.error("Failed to send password reset email", {
+      label: "Reset_Password_Service",
+      email: user.email,
+    });
+    throw new APIError(500, "Password reset failed", true, {
+      details: [
+        {
+          field: "email",
+          message: "Password reset failed: Failed to send password reset email",
+        },
+      ],
+    });
+  }
+};
+
+export const verifyResetPasswordTokenAndResetPasswordService = async (
+  data: VerifyResetPasswordTokenAndResetPasswordInput,
+) => {
+  const { token, newPassword } = data;
+
+  const payload = jwtSign.verify(token);
+
+  if (!payload) {
+    logger.error("Invalid token for password reset", {
+      label: "Verify_Reset_Password_Token_And_Reset_Password_Service",
+      token,
+    });
+    throw new APIError(400, "Invalid or expired token");
+  }
+
+  const { userId, purpose } = payload;
+
+  if (purpose !== "reset-password") {
+    logger.error("Invalid token purpose for password reset", {
+      label: "Verify_Reset_Password_Token_And_Reset_Password_Service",
+      token,
+    });
+    throw new APIError(400, "Invalid token");
+  }
+
+  const userObjectId = stringToObjectId(userId);
+  const verification = await findVerificationByToken(userObjectId, token);
+
+  if (!verification) {
+    logger.error("Verification token not found for password reset", {
+      label: "Verify_Reset_Password_Token_And_Reset_Password_Service",
+      token,
+    });
+    throw new APIError(400, "Invalid or expired token");
+  }
+
+  if (!verification || verification.expiresAt < new Date()) {
+    logger.error("Verification token expired for password reset", {
+      label: "Verify_Reset_Password_Token_And_Reset_Password_Service",
+      token,
+    });
+    throw new APIError(400, "Invalid or expired token");
+  }
+
+  const user = await findUserById(verification.userId);
+
+  if (!user) {
+    logger.error("User not found for password reset", {
+      label: "Verify_Reset_Password_Token_And_Reset_Password_Service",
+      userId: verification.userId,
+    });
+    throw new APIError(400, "User not found");
+  }
+
+  user.password = newPassword;
   await user.save();
 
   await deleteVerificationById(verification._id);
