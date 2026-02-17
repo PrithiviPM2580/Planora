@@ -15,7 +15,7 @@ declare global {
 
   interface JWTPayload {
     userId: string;
-    purpose: "email-verification" | "password-reset" | "access" | "refresh";
+    purpose: "email-verification" | "reset-password" | "access" | "refresh";
     iat?: number;
     exp?: number;
   }
